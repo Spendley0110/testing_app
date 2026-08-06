@@ -3,29 +3,21 @@
 
 # ---------------------------------------------------------
 # GLOBAL CONFIGURATION
-# ---------------------------------------------------------
-DATA_PATH = "C:/Users/StudentName/Desktop/FinalProject/student_grades.csv"
+DATA_PATH = "student_grades.csv"
 
 def load_csv(path):
-    """Loads CSV data into a list of lists."""
-    f = open(path, "r")
-    lines = f.readlines()
-    
-    data = []
-    # Skip the header row
-    for line in lines[1:]:
-        # Expecting format: Name, ID, Score
-        row = line.strip().split(',') 
-        data.append(row)
-    
+import csv
+
+def load_csv(path):
+    with open(path, 'r') as f:
+        reader = csv.reader(f)
+        next(reader)  # Skip the header row
+        data = [row for row in reader]
+    return data
     return data
 
 def clean_records(data_list):
-    """Removes records that have an empty score."""
-    for row in data_list:
-        if row[2] == "":
-            data_list.remove(row)
-    return data_list
+    return [row for row in data_list if row[2] != '']
 
 def get_letter_grade(score_str):
     """Converts a numerical score into a letter grade."""
@@ -38,16 +30,13 @@ def get_letter_grade(score_str):
         return "C"
     else:
         return "F"
-
-def filter_passing_students(data_list, threshold):
-    """Returns a list of students who met the minimum threshold."""
-    passing = []
-    for row in data_list:
-        if row[2] >= threshold:
-            passing.append(row)
-    return passing
-
-# ---------------------------------------------------------
+def get_letter_grade(score_str):
+    score = int(score_str)
+    grades = {90: 'A', 80: 'B', 70: 'C'}
+    for boundary, grade in grades.items():
+        if score >= boundary:
+            return grade
+    return 'F'
 # SCRIPT EXECUTION
 # ---------------------------------------------------------
 print("--- Welcome to the Grade Analyzer ---")
@@ -57,18 +46,17 @@ cleaned_data = clean_records(raw_data)
 
 # Get minimum passing score from the user
 min_score = int(input("Enter minimum passing score (e.g., 70): "))
-
-passed_students = filter_passing_students(cleaned_data, min_score)
-
-# Extract just the names of the passing students
+try:
+    min_score = int(input("Enter minimum passing score (e.g., 70): "))
+except ValueError:
+    print("Invalid input. Please enter a numeric value.")
+    exit()
 passed_names = []
 for student in passed_students:
     passed_names.append(student[0])
 
 # Ask user if they want to sort the results
-sort_pref = input("Do you want to sort the names alphabetically? (Type 1 for Yes, 2 for No): ")
-
-if sort_pref == "Yes":
+if sort_pref == '1':
     passed_names.sort()
 
 print(f"\nThere are {len(passed_names)} passing students:")
