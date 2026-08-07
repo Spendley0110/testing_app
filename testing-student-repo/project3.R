@@ -18,9 +18,7 @@ PlayerswithAwards <- People|>
 
 #I found that the code above includes all the players that were not awarded.
 #To resolve this, I changed the code to have People inside the AwardsPlayers.
-PlayerswithAwards <- AwardsPlayers|>
-  left_join(People, by = "playerID")
-
+PlayerswithAwards <- People |> left_join(AwardsPlayers, by = 'playerID')
 
 #I selected playerID, first and last name, awardID,and yearID to make the data concise.
 PlayerswithAwards<- PlayerswithAwards|>
@@ -43,39 +41,25 @@ Salaries|>
   count(yearID)
 
 #I filtered the PlayerwithAwards to only include data which has yearID between 1985 to 2016
-#And then combined it with the salary data.
-PlayerswithAwards<- PlayerswithAwards|>
-  filter(yearID %in% 1985:2016)|>
+PlayerswithAwards <- PlayerswithAwards |> filter(yearID %in% 1985:2016) |> left_join(Salaries, by = c('playerID', 'yearID'))
   left_join(Salaries, by = c('playerID','yearID'))
 
 
 #I found that the salary is repeated when the player awarded more than one on the same year.
 #I organized the data by using group_by only for playerID, nameFirst, nameLast, yearID, salary.
-#I combined all the different awards in to "awards" by using summarize so that the salary shows only one time.
-PlayerswithAwards<- PlayerswithAwards|>
-  group_by(playerID, nameFirst, nameLast, yearID, salary)|>
-  summarize(awards = paste(unique(awardID), collapse = ","),
+PlayerswithAwards <- PlayerswithAwards |> group_by(playerID, nameFirst, nameLast, yearID) |> summarize(awards = paste(unique(awardID), collapse = ','), .groups = 'drop')
             .groups = "drop")
 PlayerswithAwards
 
 #I filtered the PlayerswithAwards so that they only have data that excludes data that have NA for salary.
-PlayerswithAwards <- PlayerswithAwards|>
-  filter(!is.na(salary))
+PlayerswithAwards <- PlayerswithAwards |> filter(!is.na(salary))
 PlayerswithAwards
 
 ###Gathering the players that are not awarded and combining the salary data
 #I am going to use anti_join for allplayers data and the PlayerswithAwards 
 #so that I can have all the other data which is players that weren't awarded and their salaries that year.
 
-#First, I made AllPlayers Data that has data of all players combining with salary.
-AllPlayers <- People|>
-  left_join(Salaries, by = c('playerID'))|>
-  select(playerID, nameFirst, nameLast, yearID, salary)
-
-#Then, I deleted the rows that has NA for salary.
-AllPlayers<- AllPlayers|>
-  filter(!is.na(salary))
-AllPlayers
+AllPlayers <- People |> left_join(Salaries, by = c('playerID')) |> select(playerID, nameFirst, nameLast, yearID, salary) |> filter(!is.na(salary))
 
 #Then, I used anti_join with AllPlayers and PlayerswithAwards and named it PlayerswithoutAwards.
 PlayerswithoutAwards <- AllPlayers|>
@@ -101,9 +85,7 @@ PlayerswithoutAwards<- PlayerswithoutAwards|>
 PlayerswithoutAwards
 
 
-#I combined PlayerswithAwards and PlayerswithoutAwards using bind_rows
-all_players<- bind_rows(PlayerswithAwards, PlayerswithoutAwards)|>
-  mutate(Type = factor(Type, levels = c("Awards", "No Awards")))
+all_players <- bind_rows(PlayerswithAwards, PlayerswithoutAwards) |> mutate(Type = factor(Type, levels = c('Awards', 'No Awards')))
 all_players
 
 #I plotted the graph using all_players using boxplot
@@ -121,33 +103,15 @@ ggplot(all_players, aes(x = Type, y = salary, fill = Type))+
 
 
 
-###Create table1
-table1(~salary| Type, data = all_players)
-##Interpretation
-#Table1 shows the difference in salaries between players who received awards and the others who did not.
-#Awarded players earn about $4.41 million on average, and their median is 2.5 million.
-#Their range is from 60000 to 32 million.
-#Players without awards earn about $1.79 million on average and their median is 511000.
-#Their range is from 0 to 32 million.
-#The average salary is about $2.09 million, median on 550000.
-#Overall, this table shows that the awarded players are likely to have higher salaries than the other players.
-
-
-
-###ANOVA
-#Find confidence interval for both type "No Awards" and "Awards".
-#I repeated the ANOVA with each group as the reference 
-#so that I can get the 95% confidence intervals for both "Awards" and "No Awards" players.
-all_players$Type <- relevel(as.factor(all_players$Type), ref = "No Awards")
+all_players$Type <- relevel(as.factor(all_players$Type), ref = 'No Awards')
 out <- aov(salary ~ Type, data = all_players)
 confint(out)
 
-
-all_players$Type <- relevel(as.factor(all_players$Type), ref = "Awards")
+all_players$Type <- relevel(as.factor(all_players$Type), ref = 'Awards')
 out <- aov(salary ~ Type, data = all_players)
 confint(out)
 
-#Show summary
+summary(out)
 summary(out)
 ##Interpretation
 #We are 95% confident that the players who received awards earn in the CI(4285375,4527860)
