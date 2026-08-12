@@ -10,8 +10,8 @@ library(lubridate)
 library(rfema)
 
 fema_df <- open_fema(data_set = "DisasterDeclarationsSummaries")
-#enter 1 to get the data.
-
+# Enter 1 to get the data.
+fema_df <- fema_df[1, ]
 ######
 
 
@@ -29,9 +29,8 @@ fema_df<- fema_df|>
 fema_df <- fema_df |> 
   mutate(month = month(declarationDate, label = TRUE, abbr = TRUE))
 
-#Then, I got rid of the original declarationDate.
-fema_df<- fema_df|>
-  select(state,month, incidentType)
+# Remove redundant operations
+fema_df <- fema_df |> select(state, month, incidentType)
 
 #I viewed what kind of incidentTypes there are in this data.
 unique(fema_df$incidentType)
@@ -47,33 +46,23 @@ non_natural <- c(
   "Dam/Levee Break",
   "Fishing Losses",
 )
+# Define non-natural disaster categories to exclude
+define_non_natural_disasters <- function() {
+  c(
+    "Biological",
+    "Human Cause",
+    "Terrorist",
+    "Toxic Substances",
+    "Chemical",
+    "Dam/Levee Break",
+    "Fishing Losses"
+  )
+}
+
+non_natural <- define_non_natural_disasters()
 
 # Filter them out
-fema_df <- fema_df |>
-  filter(!(incidentType %in% non_natural))
-
-
-# Natural Disaster Classification
-# I classified natural disasters into groups so that the plot is more readable having less rows.
-fema_df <- fema_df|>
-  mutate(
-    disaster_group = case_when(
-      # Winter Weather
-      incidentType %in% c("Winter Storm", "Snowstorm", "Severe Ice Storm", "Freezing") ~ "Winter Weather",
-       # Tropical Cyclones
-      incidentType %in% c("Hurricane", "Typhoon", "Tropical Storm", "Tropical Depression") ~ "Tropical Cyclone",
-      # Atmospheric Storms (non-tropical severe weather)
-      incidentType %in% c("Severe Storm", "Straight-Line Winds", "Tornado") ~ "Atmospheric Storm",
-      # Hydrologic Hazards
-      incidentType %in% c("Flood", "Coastal Storm") ~ "Hydrologic Hazard",
-      # Geologic Hazards
-      incidentType %in% c("Earthquake", "Volcanic Eruption", "Mud/Landslide") ~ "Geologic Hazard",
-      # Wildfire
-      incidentType == "Fire" ~ "Wildfire",
-      # Climate-related
-      incidentType == "Drought" ~ "Climate",
-      .default = "Other"
-    )
+fema_df <- fema_df |> filter(!(incidentType %in% non_natural))
   )
 
 #I viewed what states there are in this data.
@@ -117,25 +106,22 @@ fema_df<-fema_df |>
 #and inside each panels, it has points about incidentType and state,
 # and the color shows the frequency of it like as a heatmap.
 
-#I named a new dataset named fema_count, which organizes the frequency of
-#each natural disasters that occurred in each states
-fema_count <- fema_df|>
-  group_by(region, disaster_group, season) |>
-  summarize(count = n(), .groups = "drop")
+# Define a function to create the heatmap plot
+define_heatmap_plot <- function(data) {
+  ggplot(data, aes(x = region, y = disaster_group, fill = count)) + 
+    geom_tile(color = "white") + 
+    facet_wrap(~season, scale = "free")+
+    scale_fill_viridis_c(option = "plasma") + # Color gradient indicates frequency
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    labs(
+      title = "Frequency of Natural Disasters by Region and Season",
+      x = "Region",
+      y = "Incident Type",
+      caption = "Source: FEMA OpenFEMA API, Disaster Declarations Summaries (v2), accessed Dec 13, 2025.",
+      fill = "Count"
+    )
+}
 
-#Using this fema_count and ggplot, I plotted a heatmap.
-# Each cell has different colors depening on its frequency
-#It has one panel for each season,
-ggplot(fema_count, aes(x = region, y = disaster_group, fill = count)) + 
-  geom_tile(color = "white") + 
-  facet_wrap(~season, scale = "free")+
-  scale_fill_viridis_c(option = "plasma") + # Color gradient indicates frequency
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(
-    title = "Frequency of Natural Disasters by Region and Season",
-    x = "Region",
-    y = "Incident Type",
-    caption = "Source: FEMA OpenFEMA API, Disaster Declarations Summaries (v2), accessed Dec 13, 2025.",
-    fill = "Count"
-  )
+# Create the heatmap plot
+define_heatmap_plot(fema_count)
