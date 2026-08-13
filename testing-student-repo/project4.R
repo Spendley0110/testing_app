@@ -10,7 +10,8 @@ library(lubridate)
 library(rfema)
 
 fema_df <- open_fema(data_set = "DisasterDeclarationsSummaries")
-#enter 1 to get the data.
+# Enter 1 to get the data.
+fema_df <- ifelse(readline(prompt="Enter 1 to fetch data: ") == "1", fema_df, stop("Data fetching aborted by user."))
 
 ######
 
@@ -29,9 +30,8 @@ fema_df<- fema_df|>
 fema_df <- fema_df |> 
   mutate(month = month(declarationDate, label = TRUE, abbr = TRUE))
 
-#Then, I got rid of the original declarationDate.
-fema_df<- fema_df|>
-  select(state,month, incidentType)
+# Remove the original declarationDate column after it has been used
+fema_df <- fema_df |> select(-declarationDate)
 
 #I viewed what kind of incidentTypes there are in this data.
 unique(fema_df$incidentType)
@@ -105,14 +105,12 @@ fema_df <- fema_df |>
 ##Sort the month into. four seasons, just to know what season it occurred.
 #(Dec-Jan: winter, Mar-May:spring, Jun-Aug: summer, Sep-Nov: fall)
 
-fema_df<-fema_df |>
-  mutate(season = case_when(
-    month %in% c("Dec", "Jan", "Feb") ~ "Winter",
-    month %in% c("Mar", "Apr", "May") ~ "Spring",
-    month %in% c("Jun", "Jul", "Aug") ~ "Summer",
-    month %in% c("Sep", "Oct", "Nov") ~ "Fall"
-  ))
-
+fema_df <- fema_df |> mutate(season = case_when(
+  month %in% c("Dec", "Jan", "Feb") ~ "Winter",
+  month %in% c("Mar", "Apr", "May") ~ "Spring",
+  month %in% c("Jun", "Jul", "Aug") ~ "Summer",
+  month %in% c("Sep", "Oct", "Nov") ~ "Fall"
+))
 #I would like to 4 multi panels divded by seasons 
 #and inside each panels, it has points about incidentType and state,
 # and the color shows the frequency of it like as a heatmap.
@@ -120,8 +118,7 @@ fema_df<-fema_df |>
 #I named a new dataset named fema_count, which organizes the frequency of
 #each natural disasters that occurred in each states
 fema_count <- fema_df|>
-  group_by(region, disaster_group, season) |>
-  summarize(count = n(), .groups = "drop")
+fema_count <- fema_df |> group_by(region, disaster_group, season) |> summarize(count = n(), .groups = "drop")
 
 #Using this fema_count and ggplot, I plotted a heatmap.
 # Each cell has different colors depening on its frequency

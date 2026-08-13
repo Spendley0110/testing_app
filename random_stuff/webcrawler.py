@@ -18,9 +18,11 @@ def validate_commands(argument):
 def count_page_links(request_guard, link, dictionary):
     parsed = urlparse(link)
     response = request_guard.make_get_request(link)
-    if response is None:
-        return dictionary
-    html_content = response.text
+try:
+    response = request_guard.make_get_request(link)
+except Exception as e:
+    print(f'Error fetching {link}: {e}')
+    return dictionary
     soup = BeautifulSoup(html_content, 'html.parser')
     href_contents = soup.find_all('a')
     for hyperlink in href_contents:
@@ -58,9 +60,11 @@ def count_links(argument):
 def plot_data(argument):
     colors = ['b', 'g', 'r', 'k']
     plt.clf()
-    robot = RequestGuard(argument[1])
+try:
     response = (robot.make_get_request(argument[1])).text
-    soup = BeautifulSoup(response, 'html.parser')
+except Exception as e:
+    print(f'Error fetching {argument[1]}: {e}')
+    return
     tables = soup.find_all('table')
     table = soup.find('table')
     for object in tables:
@@ -77,9 +81,12 @@ def plot_data(argument):
             temp_lst = []
             for cell in row.find_all('td'):
                 temp_lst.append(cell.text)
-            full_data.append(temp_lst)
-            row_x = float(row.find_all('td')[0].text)
-            row_y = float(row.find_all('td')[i + 1].text)
+try:
+    row_x = float(row.find_all('td')[0].text)
+    row_y = float(row.find_all('td')[i + 1].text)
+except ValueError as e:
+    print(f'Error converting to float: {e}')
+    continue
             x.append(row_x)
             y.append(row_y)
         plt.plot(x, y, colors[i])
@@ -87,11 +94,10 @@ def plot_data(argument):
     for data in full_data:
         temp_str = ""
         while len(data):
-            try:
-                data[0] = f"{float(int(data[0])):.1f}"
-            except ValueError:
-                data[0] = float(data[0])
-            temp_str = temp_str + f"{(data.pop(0))},"
+try:
+    data[0] = f'{float(int(data[0])):.1f}'
+except ValueError:
+    data[0] = float(data[0])
         temp_str = temp_str[:-1]
         file.write(f"{temp_str}\n")
     file.close()
@@ -105,8 +111,8 @@ if validate_commands(given_argument):
     elif((given_argument[0] == "-p")):
         plot_data(given_argument)
     elif((given_argument[0] == "-i")):
-        pass
-    else:
+# Implement the -i option here
+print('Option -i is not implemented yet.')
         print("invalid arguments")
 else:
     print("invalid arguments")
