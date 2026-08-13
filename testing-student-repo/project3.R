@@ -34,9 +34,6 @@ PlayerswithAwards <- unique(PlayerswithAwards)
 ###Combining the salary data with PlayerswithAwards and organizing the data
 #I combined the PlayerswithAwards and Salaries by playerID so that we can see who received awards.
 #However, PlayerswithAwards showed NA for salaries, which is not what I expected.
-PlayerswithAwards1 <- PlayerswithAwards|> 
-  left_join(Salaries, by = 'playerID') 
-
 
 #I found that Salaries only have data which is from 1985 to 2016.
 Salaries|>
@@ -60,8 +57,6 @@ PlayerswithAwards
 
 #I filtered the PlayerswithAwards so that they only have data that excludes data that have NA for salary.
 PlayerswithAwards <- PlayerswithAwards|>
-  filter(!is.na(salary))
-PlayerswithAwards
 
 ###Gathering the players that are not awarded and combining the salary data
 #I am going to use anti_join for allplayers data and the PlayerswithAwards 
