@@ -11,16 +11,7 @@ glimpse(AwardsPlayers)
 glimpse(Salaries)
 
 ###Organizing the awarded players
-#I combined the People and AwardsPlayers by playerID so that we can see who received awards.
-PlayerswithAwards <- People|>
-  left_join(AwardsPlayers, by = "playerID")
-
-
-#I found that the code above includes all the players that were not awarded.
-#To resolve this, I changed the code to have People inside the AwardsPlayers.
-PlayerswithAwards <- AwardsPlayers|>
-  left_join(People, by = "playerID")
-
+PlayerswithAwards <- AwardsPlayers |> left_join(People, by = 'playerID') |> select(playerID, nameFirst, nameLast, awardID, yearID) |> unique()
 
 #I selected playerID, first and last name, awardID,and yearID to make the data concise.
 PlayerswithAwards<- PlayerswithAwards|>
@@ -44,10 +35,7 @@ Salaries|>
 
 #I filtered the PlayerwithAwards to only include data which has yearID between 1985 to 2016
 #And then combined it with the salary data.
-PlayerswithAwards<- PlayerswithAwards|>
-  filter(yearID %in% 1985:2016)|>
-  left_join(Salaries, by = c('playerID','yearID'))
-
+PlayerswithAwards <- PlayerswithAwards |> filter(yearID %in% 1985:2016) |> left_join(Salaries, by = c('playerID', 'yearID')) |> group_by(playerID, nameFirst, nameLast, yearID, salary) |> summarize(awards = paste(unique(awardID), collapse = ','), .groups = 'drop')
 
 #I found that the salary is repeated when the player awarded more than one on the same year.
 #I organized the data by using group_by only for playerID, nameFirst, nameLast, yearID, salary.
@@ -68,9 +56,7 @@ PlayerswithAwards
 #so that I can have all the other data which is players that weren't awarded and their salaries that year.
 
 #First, I made AllPlayers Data that has data of all players combining with salary.
-AllPlayers <- People|>
-  left_join(Salaries, by = c('playerID'))|>
-  select(playerID, nameFirst, nameLast, yearID, salary)
+AllPlayers <- People |> left_join(Salaries, by = c('playerID')) |> select(playerID, nameFirst, nameLast, yearID, salary) |> filter(!is.na(salary))
 
 #Then, I deleted the rows that has NA for salary.
 AllPlayers<- AllPlayers|>
@@ -78,9 +64,7 @@ AllPlayers<- AllPlayers|>
 AllPlayers
 
 #Then, I used anti_join with AllPlayers and PlayerswithAwards and named it PlayerswithoutAwards.
-PlayerswithoutAwards <- AllPlayers|>
-  anti_join(PlayerswithAwards, by = c('playerID','yearID'))
-PlayerswithoutAwards
+PlayerswithoutAwards <- AllPlayers |> anti_join(PlayerswithAwards, by = c('playerID', 'yearID'))
 
 
 #To make sure that this works, I double checked it using sample slicing.

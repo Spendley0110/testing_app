@@ -10,8 +10,10 @@ library(lubridate)
 library(rfema)
 
 fema_df <- open_fema(data_set = "DisasterDeclarationsSummaries")
-#enter 1 to get the data.
-
+# Check if data was successfully loaded
+if (is.null(fema_df)) {
+  stop("Failed to load data from FEMA API.")
+}
 ######
 
 
@@ -20,18 +22,10 @@ glimpse(fema_df)
 
 #Organize the original data
 #Filter the state, declaration date, and incidentType.
-fema_df<- fema_df|>
-  select(state, declarationDate,incidentType)
-
-
-
-#I made a new column that has only the month. 
 fema_df <- fema_df |> 
-  mutate(month = month(declarationDate, label = TRUE, abbr = TRUE))
-
-#Then, I got rid of the original declarationDate.
-fema_df<- fema_df|>
-  select(state,month, incidentType)
+  select(state, declarationDate, incidentType) |> 
+  mutate(month = month(declarationDate, label = TRUE, abbr = TRUE)) |> 
+  select(state, month, incidentType)
 
 #I viewed what kind of incidentTypes there are in this data.
 unique(fema_df$incidentType)
@@ -48,8 +42,7 @@ non_natural <- c(
   "Fishing Losses",
 )
 
-# Filter them out
-fema_df <- fema_df |>
+fema_df <- fema_df |> 
   filter(!(incidentType %in% non_natural))
 
 
@@ -91,14 +84,14 @@ west      <- c("AZ","CO","ID","MT","NV","NM","UT","WY",
 territories <- c("DC", "PR", "GU", "AS", "VI", "MP", "FM", "MH", "PW")
 
 
-# Adding region column based on state
-fema_df <- fema_df |>
+fema_df <- fema_df |> 
   mutate(region = case_when(
     state %in% northeast ~ "Northeast",
     state %in% midwest   ~ "Midwest",
     state %in% south     ~ "South",
     state %in% west      ~ "West",
     state %in% territories ~ "Territories",
+    TRUE ~ NA_character_
   ))
 
 
@@ -117,10 +110,8 @@ fema_df<-fema_df |>
 #and inside each panels, it has points about incidentType and state,
 # and the color shows the frequency of it like as a heatmap.
 
-#I named a new dataset named fema_count, which organizes the frequency of
-#each natural disasters that occurred in each states
-fema_count <- fema_df|>
-  group_by(region, disaster_group, season) |>
+fema_count <- fema_df |> 
+  group_by(region, disaster_group, season) |> 
   summarize(count = n(), .groups = "drop")
 
 #Using this fema_count and ggplot, I plotted a heatmap.
