@@ -18,9 +18,9 @@ def validate_commands(argument):
 def count_page_links(request_guard, link, dictionary):
     parsed = urlparse(link)
     response = request_guard.make_get_request(link)
-    if response is None:
-        return dictionary
-    html_content = response.text
+if response is None:
+    print('Failed to retrieve the page.')
+    return dictionary
     soup = BeautifulSoup(html_content, 'html.parser')
     href_contents = soup.find_all('a')
     for hyperlink in href_contents:
@@ -49,9 +49,8 @@ def count_links(argument):
     plt.clf()
     file = open(argument[3], 'w')
     i = 0
-    while i < len(values):
-        file.write(f"{bins[i]},{values[i]}\n")
-        i+=1
+for i, value in enumerate(values):
+    file.write(f'{bins[i]},{value}\n')
     file.close()
     return dictionary
 
@@ -61,8 +60,8 @@ def plot_data(argument):
     robot = RequestGuard(argument[1])
     response = (robot.make_get_request(argument[1])).text
     soup = BeautifulSoup(response, 'html.parser')
-    tables = soup.find_all('table')
-    table = soup.find('table')
+tables = soup.find_all('table')
+table = tables[0] if tables else None
     for object in tables:
         if object.attrs['id'] == "CS111-Project4b":
             table = object
@@ -70,7 +69,7 @@ def plot_data(argument):
     row_example = rows[0].find_all('td')
     full_data = {}
     for i in range(len(row_example) - 1):
-        full_data = []
+full_data = {}
         x = []
         y = []
         for row in rows:
@@ -78,8 +77,8 @@ def plot_data(argument):
             for cell in row.find_all('td'):
                 temp_lst.append(cell.text)
             full_data.append(temp_lst)
-            row_x = float(row.find_all('td')[0].text)
-            row_y = float(row.find_all('td')[i + 1].text)
+row_x = float(row.find_all('td')[0].text) if row.find_all('td')[0].text.replace('.', '', 1).isdigit() else None
+row_y = float(row.find_all('td')[i + 1].text) if row.find_all('td')[i + 1].text.replace('.', '', 1).isdigit() else None
             x.append(row_x)
             y.append(row_y)
         plt.plot(x, y, colors[i])
@@ -87,11 +86,10 @@ def plot_data(argument):
     for data in full_data:
         temp_str = ""
         while len(data):
-            try:
-                data[0] = f"{float(int(data[0])):.1f}"
-            except ValueError:
-                data[0] = float(data[0])
-            temp_str = temp_str + f"{(data.pop(0))},"
+try:
+    data[0] = f'{float(int(data[0])):.1f}'
+except ValueError:
+    data[0] = float(data[0])
         temp_str = temp_str[:-1]
         file.write(f"{temp_str}\n")
     file.close()
