@@ -22,12 +22,10 @@ PlayerswithAwards <- AwardsPlayers|>
   left_join(People, by = "playerID")
 
 
-#I selected playerID, first and last name, awardID,and yearID to make the data concise.
-PlayerswithAwards<- PlayerswithAwards|>
-  select(playerID, nameFirst, nameLast,awardID, yearID)
-
-
-#I found that some rows are entirely same, so I used unique to have only keep one from them.
+# Ensure data types are safe before processing
+PlayerswithAwards <- PlayerswithAwards |> 
+  mutate(across(c(playerID, nameFirst, nameLast, awardID, yearID), as.character)) |> 
+  unique()
 PlayerswithAwards <- unique(PlayerswithAwards)
 
 
@@ -38,8 +36,9 @@ PlayerswithAwards1 <- PlayerswithAwards|>
   left_join(Salaries, by = 'playerID') 
 
 
-#I found that Salaries only have data which is from 1985 to 2016.
-Salaries|>
+# Validate year range before joining
+Salaries |> count(yearID)
+PlayerswithAwards <- PlayerswithAwards |> filter(yearID %in% 1985:2016)
   count(yearID)
 
 #I filtered the PlayerwithAwards to only include data which has yearID between 1985 to 2016
@@ -67,10 +66,11 @@ PlayerswithAwards
 #I am going to use anti_join for allplayers data and the PlayerswithAwards 
 #so that I can have all the other data which is players that weren't awarded and their salaries that year.
 
-#First, I made AllPlayers Data that has data of all players combining with salary.
-AllPlayers <- People|>
-  left_join(Salaries, by = c('playerID'))|>
-  select(playerID, nameFirst, nameLast, yearID, salary)
+# Ensure data types are safe before processing
+AllPlayers <- People |> 
+  left_join(Salaries, by = c('playerID')) |> 
+  select(playerID, nameFirst, nameLast, yearID, salary) |> 
+  mutate(across(c(playerID, nameFirst, nameLast, yearID), as.character))
 
 #Then, I deleted the rows that has NA for salary.
 AllPlayers<- AllPlayers|>
@@ -135,18 +135,22 @@ table1(~salary| Type, data = all_players)
 
 
 ###ANOVA
-#Find confidence interval for both type "No Awards" and "Awards".
-#I repeated the ANOVA with each group as the reference 
-#so that I can get the 95% confidence intervals for both "Awards" and "No Awards" players.
-all_players$Type <- relevel(as.factor(all_players$Type), ref = "No Awards")
-out <- aov(salary ~ Type, data = all_players)
-confint(out)
+# Perform ANOVA with error handling
+tryCatch({
+  all_players$Type <- relevel(as.factor(all_players$Type), ref = "No Awards")
+  out <- aov(salary ~ Type, data = all_players)
+  confint(out)
+}, error = function(e) {
+  print(paste("Error in ANOVA calculation:", e$message))
+})
 
-
-all_players$Type <- relevel(as.factor(all_players$Type), ref = "Awards")
-out <- aov(salary ~ Type, data = all_players)
-confint(out)
-
+tryCatch({
+  all_players$Type <- relevel(as.factor(all_players$Type), ref = "Awards")
+  out <- aov(salary ~ Type, data = all_players)
+  confint(out)
+}, error = function(e) {
+  print(paste("Error in ANOVA calculation:", e$message))
+})
 #Show summary
 summary(out)
 ##Interpretation
