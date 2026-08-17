@@ -28,7 +28,7 @@ PlayerswithAwards<- PlayerswithAwards|>
 
 
 #I found that some rows are entirely same, so I used unique to have only keep one from them.
-PlayerswithAwards <- unique(PlayerswithAwards)
+PlayerswithAwards <- distinct(PlayerswithAwards)
 
 
 ###Combining the salary data with PlayerswithAwards and organizing the data
@@ -139,12 +139,12 @@ table1(~salary| Type, data = all_players)
 #I repeated the ANOVA with each group as the reference 
 #so that I can get the 95% confidence intervals for both "Awards" and "No Awards" players.
 all_players$Type <- relevel(as.factor(all_players$Type), ref = "No Awards")
-out <- aov(salary ~ Type, data = all_players)
+out <- aov(log10(salary) ~ Type, data = all_players)
 confint(out)
 
 
 all_players$Type <- relevel(as.factor(all_players$Type), ref = "Awards")
-out <- aov(salary ~ Type, data = all_players)
+out <- aov(log10(salary) ~ Type, data = all_players)
 confint(out)
 
 #Show summary

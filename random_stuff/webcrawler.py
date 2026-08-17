@@ -5,11 +5,11 @@ from urllib.parse import urljoin, urlparse
 from RequestGuard import RequestGuard
 def validate_commands(argument):
     if len(argument):
-        if ((argument[0] == "-c") & (len(argument) == 4)):
+        if ((argument[0] == "-c") and (len(argument) == 4)):
             return True
-        elif ((argument[0] == "-p") & (len(argument) == 4)):
+        elif ((argument[0] == "-p") and (len(argument) == 4)):
             return True
-        elif ((argument[0] == "-i") & (len(argument) >= 4)):
+        elif ((argument[0] == "-i") and (len(argument) >= 4)):
             return True
         else:
             return False
@@ -25,7 +25,7 @@ def count_page_links(request_guard, link, dictionary):
     href_contents = soup.find_all('a')
     for hyperlink in href_contents:
         found_link = (urljoin(f"{parsed.scheme}://{parsed.netloc}{parsed.path}", hyperlink.attrs['href']).split('#')[0])
-        if found_link in list(dictionary.keys()):
+        if found_link in dictionary:
             dictionary[found_link] += 1
         else:
             dictionary[found_link] = 1
@@ -47,12 +47,11 @@ def count_links(argument):
     values, bins, a = plt.hist(counts, bin)
     plt.savefig(argument[2])
     plt.clf()
-    file = open(argument[3], 'w')
-    i = 0
-    while i < len(values):
-        file.write(f"{bins[i]},{values[i]}\n")
-        i+=1
-    file.close()
+    with open(argument[3], 'w') as file:
+        i = 0
+        while i < len(values):
+            file.write(f"{bins[i]},{values[i]}\n")
+            i+=1
     return dictionary
 
 def plot_data(argument):
@@ -83,32 +82,30 @@ def plot_data(argument):
             x.append(row_x)
             y.append(row_y)
         plt.plot(x, y, colors[i])
-    file = open(argument[3], 'w')
-    for data in full_data:
-        temp_str = ""
-        while len(data):
-            try:
-                data[0] = f"{float(int(data[0])):.1f}"
-            except ValueError:
-                data[0] = float(data[0])
-            temp_str = temp_str + f"{(data.pop(0))},"
-        temp_str = temp_str[:-1]
-        file.write(f"{temp_str}\n")
-    file.close()
+    with open(argument[3], 'w') as file:
+        for data in full_data:
+            temp_str = ""
+            while len(data):
+                try:
+                    data[0] = f"{float(int(data[0])):.1f}"
+                except ValueError:
+                    data[0] = float(data[0])
+                temp_str = temp_str + f"{(data.pop(0))},"
+            temp_str = temp_str[:-1]
+            file.write(f"{temp_str}\n")
     plt.savefig(argument[2])
     plt.clf()
     
-given_argument = sys.argv[1:len(sys.argv)]
-if validate_commands(given_argument):
-    if((given_argument[0] == "-c")):
-        count_links(given_argument)
-    elif((given_argument[0] == "-p")):
-        plot_data(given_argument)
-    elif((given_argument[0] == "-i")):
-        pass
+if __name__ == "__main__":
+    given_argument = sys.argv[1:]
+    if validate_commands(given_argument):
+        if((given_argument[0] == "-c")):
+            count_links(given_argument)
+        elif((given_argument[0] == "-p")):
+            plot_data(given_argument)
+        elif((given_argument[0] == "-i")):
+            pass
+        else:
+            print("invalid arguments")
     else:
         print("invalid arguments")
-else:
-    print("invalid arguments")
-if __name__ == "__main__":
-    pass

@@ -1,7 +1,7 @@
 #Bringing the API data to Rscript
 ######
 #install rfema package
-install.packages("rfema", repos = "https://ropensci.r-universe.dev")
+# install.packages("rfema", repos = "https://ropensci.r-universe.dev")
 
 #use library to pull the packages.
 library(dplyr)
@@ -10,8 +10,8 @@ library(lubridate)
 library(rfema)
 
 fema_df <- open_fema(data_set = "DisasterDeclarationsSummaries")
+if (is.null(fema_df) || nrow(fema_df) == 0) stop("Data load failed or empty")
 #enter 1 to get the data.
-
 ######
 
 
@@ -128,8 +128,8 @@ fema_count <- fema_df|>
 #It has one panel for each season,
 ggplot(fema_count, aes(x = region, y = disaster_group, fill = count)) + 
   geom_tile(color = "white") + 
-  facet_wrap(~season, scale = "free")+
-  scale_fill_viridis_c(option = "plasma") + # Color gradient indicates frequency
+  facet_wrap(~season, scales = "fixed") + 
+  scale_fill_viridis_c(option = "plasma") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(
