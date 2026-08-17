@@ -4,15 +4,16 @@ import sys
 from urllib.parse import urljoin, urlparse
 from RequestGuard import RequestGuard
 def validate_commands(argument):
-    if len(argument):
-        if ((argument[0] == "-c") & (len(argument) == 4)):
-            return True
-        elif ((argument[0] == "-p") & (len(argument) == 4)):
-            return True
-        elif ((argument[0] == "-i") & (len(argument) >= 4)):
-            return True
-        else:
-            return False
+    if not argument or len(argument) < 2:
+        return False
+    flag = argument[0]
+    valid_flags = ['-c', '-p', '-i']
+    if flag in valid_flags and len(argument) == 4:
+        return True
+    elif flag == '-i' and len(argument) >= 4:
+        return True
+    else:
+        return False
     return False
 
 def count_page_links(request_guard, link, dictionary):
@@ -24,13 +25,16 @@ def count_page_links(request_guard, link, dictionary):
     soup = BeautifulSoup(html_content, 'html.parser')
     href_contents = soup.find_all('a')
     for hyperlink in href_contents:
-        found_link = (urljoin(f"{parsed.scheme}://{parsed.netloc}{parsed.path}", hyperlink.attrs['href']).split('#')[0])
-        if found_link in list(dictionary.keys()):
-            dictionary[found_link] += 1
-        else:
-            dictionary[found_link] = 1
-            if request_guard.can_follow_link(found_link):
-                dictionary = count_page_links(request_guard, found_link, dictionary)
+        try:
+            found_link = urljoin(f'{parsed.scheme}://{parsed.netloc}{parsed.path}', hyperlink.attrs['href']).split('#')[0]
+            if found_link in dictionary:
+                dictionary[found_link] += 1
+            else:
+                dictionary[found_link] = 1
+                if request_guard.can_follow_link(found_link):
+                    dictionary = count_page_links(request_guard, found_link, dictionary)
+        except Exception as e:
+            print(f'Error processing link {link}: {e}')
     return dictionary
 
 def count_links(argument):
@@ -62,39 +66,35 @@ def plot_data(argument):
     response = (robot.make_get_request(argument[1])).text
     soup = BeautifulSoup(response, 'html.parser')
     tables = soup.find_all('table')
-    table = soup.find('table')
+    table = None
     for object in tables:
-        if object.attrs['id'] == "CS111-Project4b":
+        if object.attrs.get('id') == 'CS111-Project4b':
             table = object
+            break
+    if not table:
+        print('Table with ID CS111-Project4b not found.')
+        return
     rows = table.find_all('tr')
     row_example = rows[0].find_all('td')
-    full_data = {}
+    full_data = []
     for i in range(len(row_example) - 1):
-        full_data = []
         x = []
         y = []
         for row in rows:
-            temp_lst = []
-            for cell in row.find_all('td'):
-                temp_lst.append(cell.text)
+            temp_lst = [cell.text.strip() for cell in row.find_all('td')]
             full_data.append(temp_lst)
-            row_x = float(row.find_all('td')[0].text)
-            row_y = float(row.find_all('td')[i + 1].text)
+            row_x = float(temp_lst[0])
+            row_y = float(temp_lst[i + 1])
             x.append(row_x)
             y.append(row_y)
-        plt.plot(x, y, colors[i])
+        plt.plot(x, y, colors[i % len(colors)])
     file = open(argument[3], 'w')
     for data in full_data:
-        temp_str = ""
-        while len(data):
-            try:
-                data[0] = f"{float(int(data[0])):.1f}"
-            except ValueError:
-                data[0] = float(data[0])
-            temp_str = temp_str + f"{(data.pop(0))},"
-        temp_str = temp_str[:-1]
-        file.write(f"{temp_str}\n")
+        temp_str = ','.join(data)
+        file.write(f'{temp_str}\n')
     file.close()
+    plt.savefig(argument[2])
+    plt.clf()
     plt.savefig(argument[2])
     plt.clf()
     

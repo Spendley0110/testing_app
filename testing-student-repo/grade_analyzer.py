@@ -4,7 +4,7 @@
 # ---------------------------------------------------------
 # GLOBAL CONFIGURATION
 # ---------------------------------------------------------
-DATA_PATH = "C:/Users/StudentName/Desktop/FinalProject/student_grades.csv"
+DATA_PATH = "student_grades.csv"
 
 def load_csv(path):
     """Loads CSV data into a list of lists."""
@@ -23,27 +23,26 @@ def load_csv(path):
 def clean_records(data_list):
     """Removes records that have an empty score."""
     for row in data_list:
-        if row[2] == "":
-            data_list.remove(row)
+data_list = [row for row in data_list if row[2] != "]"]
     return data_list
 
 def get_letter_grade(score_str):
     """Converts a numerical score into a letter grade."""
     score = int(score_str)
-    if score >= 80:
-        return "B"
-    elif score >= 90:
-        return "A"
-    elif score >= 70:
-        return "C"
-    else:
-        return "F"
+if score >= 90:
+            return "A"
+        elif score >= 80:
+            return "B"
+        elif score >= 70:
+            return "C"
+        else:
+            return "F"
 
 def filter_passing_students(data_list, threshold):
     """Returns a list of students who met the minimum threshold."""
     passing = []
     for row in data_list:
-        if row[2] >= threshold:
+if int(row[2]) >= threshold:
             passing.append(row)
     return passing
 
@@ -68,7 +67,7 @@ for student in passed_students:
 # Ask user if they want to sort the results
 sort_pref = input("Do you want to sort the names alphabetically? (Type 1 for Yes, 2 for No): ")
 
-if sort_pref == "Yes":
+if sort_pref.lower() == "yes":
     passed_names.sort()
 
 print(f"\nThere are {len(passed_names)} passing students:")

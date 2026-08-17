@@ -43,68 +43,56 @@ def make_dictionary(csv_file):
             }
             dict_list.append(dict)
 
-    return dict_list
-
 def input_preference():
     energy = int(input("Do you like energetic songs? Rate from 1(low) to 3(high)\n"))
-    genre =  input("What kind of genre do you prefer? Choose from: edm ,r&b, latin, rock, rap, pop\n")
-    tempo =  int(input("Do you like fast tempo or slow tempo? Type 1 for fast and 2 for slow\n"))
+    genre = input("What kind of genre do you prefer? Choose from: edm, r&b, latin, rock, rap, pop\n")
+    tempo = int(input("Do you like fast tempo or slow tempo? Type 1 for fast and 2 for slow\n"))
     popularity = input("Looking for top track songs or want to discover new songs? Type T or N\n")
-    return energy, genre, tempo, popularity
+    if energy not in [1, 2, 3]:
+        raise ValueError("Energy must be between 1 and 3.")
+    if genre.lower() not in ['edm', 'r&b', 'latin', 'rock', 'rap', 'pop']:
+        raise ValueError("Genre must be one of the specified options.")
+    if tempo not in [1, 2]:
+        raise ValueError("Tempo must be either 1 or 2.")
+    if popularity.lower() not in ['t', 'n']:
+        raise ValueError("Popularity must be either T or N.")
+    return energy, genre.lower(), tempo, popularity.lower()
 
 def filter_energy(energy,dict_list):
+def filter_energy(energy, dict_list):
     energy_list = []
     if energy == 1:
-        for dict in dict_list:
-            if float(dict["energy"]) <= 0.3:
-                energy_list.append(dict)
+        energy_list = [d for d in dict_list if float(d['energy']) <= 0.3]
     elif energy == 2:
-        for dict in dict_list:
-            if float(dict["energy"]) <= 0.6:
-                energy_list.append(dict)
+        energy_list = [d for d in dict_list if 0.3 < float(d['energy']) <= 0.6]
     elif energy == 3:
-        for dict in dict_list:
-            if float(dict["energy"]) > 0.6:
-                energy_list.append(dict)
+        energy_list = [d for d in dict_list if float(d['energy']) > 0.6]
     return energy_list
 
 def filter_genre(genre, energy_list):
-    genre_and_energy = []
-    for dict in energy_list:
-        if dict['genre'] == genre:
-            genre_and_energy.append(dict)
+    genre_and_energy = [d for d in energy_list if d['genre'].lower() == genre]
     return genre_and_energy
 
 def filter_tempo(tempo, genre_and_energy):
     temp_genre_energy = []
     if tempo == 1:
-        for dict in genre_and_energy:
-            if float(dict["tempo"]) <= 80:
-                temp_genre_energy.append(dict)
+        temp_genre_energy = [d for d in genre_and_energy if float(d['tempo']) <= 80]
     elif tempo == 2:
-        for dict in genre_and_energy:
-            if float(dict["tempo"]) <= 120:
-                temp_genre_energy.append(dict)
-    elif tempo == 3:
-        for dict in genre_and_energy:
-            if float(dict["tempo"]) > 120:
-                temp_genre_energy.append(dict)
-    return  temp_genre_energy
+        temp_genre_energy = [d for d in genre_and_energy if 80 < float(d['tempo']) <= 120]
+    return temp_genre_energy
 
 
 def recommend_song_popular_or_no(popularity, tempo_genre_energy):
-    if popularity == 'Y':
-        popularity_sorted = sorted(tempo_genre_energy, key = lambda x: x["track_popularity"])
-        return popularity_sorted
+    if popularity == 't':
+        return sorted(tempo_genre_energy, key=lambda x: x['track_popularity'], reverse=True)
     else:
-        popularity_sorted = sorted(tempo_genre_energy, key = lambda x: x["track_popularity"], reverse = True)
-        return popularity_sorted
+        return sorted(tempo_genre_energy, key=lambda x: x['track_popularity'])
 
 
 
 
 def main():
-    dataset = '/Users/gahyunbaik/Desktop/cs111/free_coding/spotify_songs copy.csv'
+dataset = 'spotify_songs copy.csv'
     dataset_list = read_file(dataset)
     dict_data = make_dictionary(dataset_list)
     #print(dict_data)

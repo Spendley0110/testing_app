@@ -9,8 +9,11 @@ library(tidyverse)
 library(lubridate)
 library(rfema)
 
-fema_df <- open_fema(data_set = "DisasterDeclarationsSummaries")
-#enter 1 to get the data.
+tryCatch({
+  fema_df <- open_fema(data_set = "DisasterDeclarationsSummaries")
+}, error = function(e) {
+  stop("Failed to fetch data from FEMA API: ", e$message)
+})
 
 ######
 
@@ -20,15 +23,13 @@ glimpse(fema_df)
 
 #Organize the original data
 #Filter the state, declaration date, and incidentType.
-fema_df<- fema_df|>
-  select(state, declarationDate,incidentType)
+fema_df <- fema_df |> select(state, declarationDate, incidentType) |> filter(!is.na(declarationDate))
 
 
 
 #I made a new column that has only the month. 
 fema_df <- fema_df |> 
-  mutate(month = month(declarationDate, label = TRUE, abbr = TRUE))
-
+fema_df <- fema_df |> mutate(month = month(declarationDate, label = TRUE, abbr = TRUE)) |> filter(!is.na(month))
 #Then, I got rid of the original declarationDate.
 fema_df<- fema_df|>
   select(state,month, incidentType)
@@ -49,8 +50,7 @@ non_natural <- c(
 )
 
 # Filter them out
-fema_df <- fema_df |>
-  filter(!(incidentType %in% non_natural))
+fema_df <- fema_df |> filter(!(incidentType %in% non_natural), !is.na(incidentType))
 
 
 # Natural Disaster Classification
