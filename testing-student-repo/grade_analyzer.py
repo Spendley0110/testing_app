@@ -4,12 +4,13 @@
 # ---------------------------------------------------------
 # GLOBAL CONFIGURATION
 # ---------------------------------------------------------
-DATA_PATH = "C:/Users/StudentName/Desktop/FinalProject/student_grades.csv"
+DATA_PATH = "student_grades.csv"
+
 
 def load_csv(path):
     """Loads CSV data into a list of lists."""
-    f = open(path, "r")
-    lines = f.readlines()
+    with open(path, "r") as f:
+        lines = f.readlines()
     
     data = []
     # Skip the header row
@@ -22,18 +23,19 @@ def load_csv(path):
 
 def clean_records(data_list):
     """Removes records that have an empty score."""
+    clean_data = []
     for row in data_list:
-        if row[2] == "":
-            data_list.remove(row)
-    return data_list
+        if row[2] != "":
+            clean_data.append(row)
+    return clean_data
 
 def get_letter_grade(score_str):
     """Converts a numerical score into a letter grade."""
     score = int(score_str)
-    if score >= 80:
-        return "B"
-    elif score >= 90:
+    if score >= 90:
         return "A"
+    elif score >= 80:
+        return "B"
     elif score >= 70:
         return "C"
     else:
@@ -43,7 +45,7 @@ def filter_passing_students(data_list, threshold):
     """Returns a list of students who met the minimum threshold."""
     passing = []
     for row in data_list:
-        if row[2] >= threshold:
+        if int(row[2]) >= threshold:
             passing.append(row)
     return passing
 
@@ -56,8 +58,8 @@ raw_data = load_csv(DATA_PATH)
 cleaned_data = clean_records(raw_data)
 
 # Get minimum passing score from the user
-min_score = int(input("Enter minimum passing score (e.g., 70): "))
-
+min_score_input = input("Enter minimum passing score (e.g., 70): ")
+min_score = int(min_score_input) if min_score_input.isdigit() else 70
 passed_students = filter_passing_students(cleaned_data, min_score)
 
 # Extract just the names of the passing students
@@ -68,7 +70,7 @@ for student in passed_students:
 # Ask user if they want to sort the results
 sort_pref = input("Do you want to sort the names alphabetically? (Type 1 for Yes, 2 for No): ")
 
-if sort_pref == "Yes":
+if sort_pref == "1":
     passed_names.sort()
 
 print(f"\nThere are {len(passed_names)} passing students:")
