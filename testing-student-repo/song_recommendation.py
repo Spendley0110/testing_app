@@ -1,4 +1,5 @@
 import kagglehub
+import csv
 
 # Download latest version
 path = kagglehub.dataset_download("joebeachcapital/30000-spotify-songs")
@@ -6,18 +7,17 @@ path = kagglehub.dataset_download("joebeachcapital/30000-spotify-songs")
 print("Path to dataset files:", path)
 #I moved the csv file to the free_coding folder
 
-def read_file(csv):
-    "reads the csv file dataset and splits it into lists by '\n'."
-    with open(csv, "r") as file:
-        csv_file = file.readlines()
+def read_file(filepath):
+    "reads the csv file dataset using csv module."
+    with open(filepath, "r", encoding='utf-8') as file:
+        reader = csv.reader(file)
         new_csv = []
         id_list = []
-        for i in csv_file:
-            new_i = i.split(',')
-            if new_i[0] in id_list:
+        for row in reader:
+            if row[0] in id_list:
                 continue
-            new_csv.append(new_i)
-            id_list.append(new_i[0])
+            new_csv.append(row)
+            id_list.append(row[0])
     return new_csv
 
 def make_dictionary(csv_file):
@@ -48,7 +48,7 @@ def make_dictionary(csv_file):
 def input_preference():
     energy = int(input("Do you like energetic songs? Rate from 1(low) to 3(high)\n"))
     genre =  input("What kind of genre do you prefer? Choose from: edm ,r&b, latin, rock, rap, pop\n")
-    tempo =  int(input("Do you like fast tempo or slow tempo? Type 1 for fast and 2 for slow\n"))
+    tempo =  int(input("Do you like fast tempo or slow tempo? Type 1 for slow, 2 for medium, 3 for fast\n"))
     popularity = input("Looking for top track songs or want to discover new songs? Type T or N\n")
     return energy, genre, tempo, popularity
 
@@ -93,7 +93,7 @@ def filter_tempo(tempo, genre_and_energy):
 
 
 def recommend_song_popular_or_no(popularity, tempo_genre_energy):
-    if popularity == 'Y':
+    if popularity == 'T':
         popularity_sorted = sorted(tempo_genre_energy, key = lambda x: x["track_popularity"])
         return popularity_sorted
     else:
@@ -104,7 +104,7 @@ def recommend_song_popular_or_no(popularity, tempo_genre_energy):
 
 
 def main():
-    dataset = '/Users/gahyunbaik/Desktop/cs111/free_coding/spotify_songs copy.csv'
+    dataset = 'spotify_songs copy.csv'
     dataset_list = read_file(dataset)
     dict_data = make_dictionary(dataset_list)
     #print(dict_data)
@@ -114,8 +114,8 @@ def main():
     tempo_and_genre_and_energy = filter_tempo(tempo, genre_and_energy)
     popularity_sorted = recommend_song_popular_or_no(popularity, tempo_and_genre_and_energy)
     print("Try these 5 songs!")
-    for dict in popularity_sorted[:5]:
-        print(f"{dict["track_name"]} by {dict["track_artist"]} id: {dict["track_id"]}")
+    for track in popularity_sorted[:5]:
+        print(f"{track['track_name']} by {track['track_artist']} id: {track['track_id']}")
 
 
 

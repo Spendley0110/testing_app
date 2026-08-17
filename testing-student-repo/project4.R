@@ -1,7 +1,8 @@
 #Bringing the API data to Rscript
 ######
 #install rfema package
-install.packages("rfema", repos = "https://ropensci.r-universe.dev")
+# install.packages("rfema", repos = "https://ropensci.r-universe.dev")
+
 
 #use library to pull the packages.
 library(dplyr)
@@ -99,6 +100,7 @@ fema_df <- fema_df |>
     state %in% south     ~ "South",
     state %in% west      ~ "West",
     state %in% territories ~ "Territories",
+    .default = "Unknown"
   ))
 
 
@@ -110,7 +112,8 @@ fema_df<-fema_df |>
     month %in% c("Dec", "Jan", "Feb") ~ "Winter",
     month %in% c("Mar", "Apr", "May") ~ "Spring",
     month %in% c("Jun", "Jul", "Aug") ~ "Summer",
-    month %in% c("Sep", "Oct", "Nov") ~ "Fall"
+    month %in% c("Sep", "Oct", "Nov") ~ "Fall",
+    .default = "Unknown"
   ))
 
 #I would like to 4 multi panels divded by seasons 

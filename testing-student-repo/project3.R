@@ -91,14 +91,14 @@ AllPlayers_sample <- AllPlayers |> slice_sample(n = 50)
 
 ###Making the Plot
 #mutate column called type that differentiates to Awards and No Awards.
-PlayerswithAwards<- PlayerswithAwards|>
+#I combined PlayerswithAwards and PlayerswithoutAwards using bind_rows
+#Ensure columns match by adding 'awards' to PlayerswithoutAwards before binding
+PlayerswithAwards <- PlayerswithAwards|>
   mutate(Type = "Awards")
-PlayerswithAwards
 
-PlayerswithoutAwards<- PlayerswithoutAwards|>
-  mutate(awards = "None")|>
-  mutate(Type = "No Awards")
-PlayerswithoutAwards
+PlayerswithoutAwards <- PlayerswithoutAwards|>
+  mutate(awards = "None",
+         Type = "No Awards")
 
 
 #I combined PlayerswithAwards and PlayerswithoutAwards using bind_rows
@@ -138,20 +138,21 @@ table1(~salary| Type, data = all_players)
 #Find confidence interval for both type "No Awards" and "Awards".
 #I repeated the ANOVA with each group as the reference 
 #so that I can get the 95% confidence intervals for both "Awards" and "No Awards" players.
+#Find confidence interval for both type "No Awards" and "Awards".
+#Using log(salary) to satisfy ANOVA normality assumptions given the skew.
 all_players$Type <- relevel(as.factor(all_players$Type), ref = "No Awards")
-out <- aov(salary ~ Type, data = all_players)
+out <- aov(log(salary) ~ Type, data = all_players)
 confint(out)
 
 
 all_players$Type <- relevel(as.factor(all_players$Type), ref = "Awards")
-out <- aov(salary ~ Type, data = all_players)
+out <- aov(log(salary) ~ Type, data = all_players)
 confint(out)
 
 #Show summary
 summary(out)
 ##Interpretation
-#We are 95% confident that the players who received awards earn in the CI(4285375,4527860)
-# and the players who did not receive awards earn in the CI(1751743,1837599).
+#Note: CIs below are for log(salary). Exponentiate limits to interpret in dollars.
 #The summary shows that this data is statistically significant, having the P-value smaller than 0.001.
 #Overall, the analysis strongly suggests that award-winning players earn significantly higher salaries than other players.
 
