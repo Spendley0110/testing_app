@@ -116,7 +116,9 @@ ggplot(all_players, aes(x = Type, y = salary, fill = Type))+
        x = "Type",
        y = "Salaries($)"
        )+
-  scale_y_log10(labels = dollar_format())+
+  scale_y_log10(labels = dollar_format()) + 
+  # Ensure salary > 0 to avoid Infinite values in log scale
+  coord_cartesian(ylim = c(min(all_players$salary[all_players$salary > 0]), max(all_players$salary)))
   theme_minimal()
 
 
@@ -139,12 +141,12 @@ table1(~salary| Type, data = all_players)
 #I repeated the ANOVA with each group as the reference 
 #so that I can get the 95% confidence intervals for both "Awards" and "No Awards" players.
 all_players$Type <- relevel(as.factor(all_players$Type), ref = "No Awards")
-out <- aov(salary ~ Type, data = all_players)
+out <- aov(log10(salary) ~ Type, data = all_players)
 confint(out)
 
 
 all_players$Type <- relevel(as.factor(all_players$Type), ref = "Awards")
-out <- aov(salary ~ Type, data = all_players)
+out <- aov(log10(salary) ~ Type, data = all_players)
 confint(out)
 
 #Show summary
