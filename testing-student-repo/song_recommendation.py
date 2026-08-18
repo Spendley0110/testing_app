@@ -46,10 +46,14 @@ def make_dictionary(csv_file):
     return dict_list
 
 def input_preference():
-    energy = int(input("Do you like energetic songs? Rate from 1(low) to 3(high)\n"))
-    genre =  input("What kind of genre do you prefer? Choose from: edm ,r&b, latin, rock, rap, pop\n")
-    tempo =  int(input("Do you like fast tempo or slow tempo? Type 1 for fast and 2 for slow\n"))
-    popularity = input("Looking for top track songs or want to discover new songs? Type T or N\n")
+    try:
+        energy = int(input("Do you like energetic songs? Rate from 1(low) to 3(high)\n"))
+        genre =  input("What kind of genre do you prefer? Choose from: edm ,r&b, latin, rock, rap, pop\n")
+        tempo =  int(input("Do you like fast tempo or slow tempo? Type 1 for fast and 2 for slow\n"))
+        popularity = input("Looking for top track songs or want to discover new songs? Type T or N\n")
+    except ValueError:
+        print("Invalid input. Please enter numbers where required.")
+        return None, None, None, None
     return energy, genre, tempo, popularity
 
 def filter_energy(energy,dict_list):
@@ -79,7 +83,7 @@ def filter_tempo(tempo, genre_and_energy):
     temp_genre_energy = []
     if tempo == 1:
         for dict in genre_and_energy:
-            if float(dict["tempo"]) <= 80:
+            if float(dict["tempo"]) > 120:
                 temp_genre_energy.append(dict)
     elif tempo == 2:
         for dict in genre_and_energy:
@@ -87,24 +91,24 @@ def filter_tempo(tempo, genre_and_energy):
                 temp_genre_energy.append(dict)
     elif tempo == 3:
         for dict in genre_and_energy:
-            if float(dict["tempo"]) > 120:
+            if float(dict["tempo"]) > 150:
                 temp_genre_energy.append(dict)
     return  temp_genre_energy
 
 
 def recommend_song_popular_or_no(popularity, tempo_genre_energy):
-    if popularity == 'Y':
-        popularity_sorted = sorted(tempo_genre_energy, key = lambda x: x["track_popularity"])
+    if popularity == 'T':
+        popularity_sorted = sorted(tempo_genre_energy, key = lambda x: int(x["track_popularity"]))
         return popularity_sorted
     else:
-        popularity_sorted = sorted(tempo_genre_energy, key = lambda x: x["track_popularity"], reverse = True)
+        popularity_sorted = sorted(tempo_genre_energy, key = lambda x: int(x["track_popularity"]), reverse = True)
         return popularity_sorted
 
 
 
 
 def main():
-    dataset = '/Users/gahyunbaik/Desktop/cs111/free_coding/spotify_songs copy.csv'
+    dataset = path
     dataset_list = read_file(dataset)
     dict_data = make_dictionary(dataset_list)
     #print(dict_data)
