@@ -4,15 +4,11 @@ import sys
 from urllib.parse import urljoin, urlparse
 from RequestGuard import RequestGuard
 def validate_commands(argument):
-    if len(argument):
-        if ((argument[0] == "-c") & (len(argument) == 4)):
-            return True
-        elif ((argument[0] == "-p") & (len(argument) == 4)):
-            return True
-        elif ((argument[0] == "-i") & (len(argument) >= 4)):
-            return True
-        else:
-            return False
+    if len(argument) == 0:
+        return False
+    if argument[0] in ['-c', '-p', '-i'] and len(argument) >= 4:
+        return True
+    return False
     return False
 
 def count_page_links(request_guard, link, dictionary):
@@ -23,8 +19,8 @@ def count_page_links(request_guard, link, dictionary):
     html_content = response.text
     soup = BeautifulSoup(html_content, 'html.parser')
     href_contents = soup.find_all('a')
-    for hyperlink in href_contents:
-        found_link = (urljoin(f"{parsed.scheme}://{parsed.netloc}{parsed.path}", hyperlink.attrs['href']).split('#')[0])
+for hyperlink in href_contents:
+    if 'href' in hyperlink.attrs:
         if found_link in list(dictionary.keys()):
             dictionary[found_link] += 1
         else:
@@ -47,7 +43,14 @@ def count_links(argument):
     values, bins, a = plt.hist(counts, bin)
     plt.savefig(argument[2])
     plt.clf()
+try:
+try:
     file = open(argument[3], 'w')
+except IOError as e:
+    print(f"Error writing to file: {e}")
+except IOError as e:
+    print(f"Error writing to file: {e}")
+    return dictionary
     i = 0
     while i < len(values):
         file.write(f"{bins[i]},{values[i]}\n")
@@ -83,7 +86,14 @@ def plot_data(argument):
             x.append(row_x)
             y.append(row_y)
         plt.plot(x, y, colors[i])
+try:
+try:
     file = open(argument[3], 'w')
+except IOError as e:
+    print(f"Error writing to file: {e}")
+except IOError as e:
+    print(f"Error writing to file: {e}")
+    return dictionary
     for data in full_data:
         temp_str = ""
         while len(data):

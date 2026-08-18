@@ -46,11 +46,21 @@ def make_dictionary(csv_file):
     return dict_list
 
 def input_preference():
-    energy = int(input("Do you like energetic songs? Rate from 1(low) to 3(high)\n"))
-    genre =  input("What kind of genre do you prefer? Choose from: edm ,r&b, latin, rock, rap, pop\n")
-    tempo =  int(input("Do you like fast tempo or slow tempo? Type 1 for fast and 2 for slow\n"))
-    popularity = input("Looking for top track songs or want to discover new songs? Type T or N\n")
-    return energy, genre, tempo, popularity
+    while True:
+        try:
+            energy = int(input("Do you like energetic songs? Rate from 1(low) to 3(high)\n"))
+            if energy not in [1, 2, 3]:
+                raise ValueError
+            genre = input("What kind of genre do you prefer? Choose from: edm ,r&b, latin, rock, rap, pop\n")
+            tempo = int(input("Do you like fast tempo or slow tempo? Type 1 for fast and 2 for slow\n"))
+            if tempo not in [1, 2]:
+                raise ValueError
+            popularity = input("Looking for top track songs or want to discover new songs? Type T or N\n")
+            if popularity.upper() not in ['T', 'N']:
+                raise ValueError
+            return energy, genre, tempo, popularity
+        except ValueError:
+            print("Invalid input. Please try again.")
 
 def filter_energy(energy,dict_list):
     energy_list = []
@@ -104,8 +114,7 @@ def recommend_song_popular_or_no(popularity, tempo_genre_energy):
 
 
 def main():
-    dataset = '/Users/gahyunbaik/Desktop/cs111/free_coding/spotify_songs copy.csv'
-    dataset_list = read_file(dataset)
+dataset = 'spotify_songs copy.csv'
     dict_data = make_dictionary(dataset_list)
     #print(dict_data)
     energy, genre, tempo, popularity = input_preference()

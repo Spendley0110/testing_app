@@ -44,8 +44,8 @@ Salaries|>
 
 #I filtered the PlayerwithAwards to only include data which has yearID between 1985 to 2016
 #And then combined it with the salary data.
-PlayerswithAwards<- PlayerswithAwards|>
-  filter(yearID %in% 1985:2016)|>
+PlayerswithAwards <- PlayerswithAwards |> 
+  filter(yearID %in% 1985:2016) |> 
   left_join(Salaries, by = c('playerID','yearID'))
 
 
@@ -70,8 +70,9 @@ PlayerswithAwards
 #First, I made AllPlayers Data that has data of all players combining with salary.
 AllPlayers <- People|>
   left_join(Salaries, by = c('playerID'))|>
+AllPlayers <- People |> 
+  left_join(Salaries, by = c('playerID', 'yearID')) |> 
   select(playerID, nameFirst, nameLast, yearID, salary)
-
 #Then, I deleted the rows that has NA for salary.
 AllPlayers<- AllPlayers|>
   filter(!is.na(salary))
