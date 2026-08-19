@@ -1,7 +1,7 @@
 #Bringing the API data to Rscript
 ######
 #install rfema package
-install.packages("rfema", repos = "https://ropensci.r-universe.dev")
+# install.packages("rfema", repos = "https://ropensci.r-universe.dev")
 
 #use library to pull the packages.
 library(dplyr)
@@ -20,18 +20,10 @@ glimpse(fema_df)
 
 #Organize the original data
 #Filter the state, declaration date, and incidentType.
-fema_df<- fema_df|>
-  select(state, declarationDate,incidentType)
-
-
-
-#I made a new column that has only the month. 
-fema_df <- fema_df |> 
-  mutate(month = month(declarationDate, label = TRUE, abbr = TRUE))
-
-#Then, I got rid of the original declarationDate.
-fema_df<- fema_df|>
-  select(state,month, incidentType)
+fema_df <- fema_df |>
+  select(state, declarationDate, incidentType) |>
+  mutate(month = month(declarationDate, label = TRUE, abbr = TRUE)) |>
+  select(state, month, incidentType)
 
 #I viewed what kind of incidentTypes there are in this data.
 unique(fema_df$incidentType)
@@ -119,7 +111,7 @@ fema_df<-fema_df |>
 
 #I named a new dataset named fema_count, which organizes the frequency of
 #each natural disasters that occurred in each states
-fema_count <- fema_df|>
+fema_count <- fema_df |>
   group_by(region, disaster_group, season) |>
   summarize(count = n(), .groups = "drop")
 

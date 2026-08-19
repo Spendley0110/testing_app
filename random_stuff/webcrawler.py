@@ -5,11 +5,12 @@ from urllib.parse import urljoin, urlparse
 from RequestGuard import RequestGuard
 def validate_commands(argument):
     if len(argument):
-        if ((argument[0] == "-c") & (len(argument) == 4)):
+        if (argument[0] == "-c" and len(argument) == 4):
             return True
-        elif ((argument[0] == "-p") & (len(argument) == 4)):
+        elif (argument[0] == "-p" and len(argument) == 4):
             return True
-        elif ((argument[0] == "-i") & (len(argument) >= 4)):
+        elif (argument[0] == "-i" and len(argument) >= 4):
+            return True
             return True
         else:
             return False
@@ -25,7 +26,7 @@ def count_page_links(request_guard, link, dictionary):
     href_contents = soup.find_all('a')
     for hyperlink in href_contents:
         found_link = (urljoin(f"{parsed.scheme}://{parsed.netloc}{parsed.path}", hyperlink.attrs['href']).split('#')[0])
-        if found_link in list(dictionary.keys()):
+        if found_link in dictionary:
             dictionary[found_link] += 1
         else:
             dictionary[found_link] = 1
@@ -98,17 +99,16 @@ def plot_data(argument):
     plt.savefig(argument[2])
     plt.clf()
     
-given_argument = sys.argv[1:len(sys.argv)]
-if validate_commands(given_argument):
-    if((given_argument[0] == "-c")):
-        count_links(given_argument)
-    elif((given_argument[0] == "-p")):
-        plot_data(given_argument)
-    elif((given_argument[0] == "-i")):
-        pass
+if __name__ == "__main__":
+    given_argument = sys.argv[1:len(sys.argv)]
+    if validate_commands(given_argument):
+        if (given_argument[0] == "-c"):
+            count_links(given_argument)
+        elif (given_argument[0] == "-p"):
+            plot_data(given_argument)
+        elif (given_argument[0] == "-i"):
+            pass
+        else:
+            print("invalid arguments")
     else:
         print("invalid arguments")
-else:
-    print("invalid arguments")
-if __name__ == "__main__":
-    pass
